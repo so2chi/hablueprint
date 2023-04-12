@@ -1,0 +1,72 @@
+blueprint:
+  name: 화장실 자동
+  description: v1
+  domain: automation
+  input:
+    toilet_sensor:
+      name: 화장실 움직임센서
+      description: ''
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: false
+    toilet_door_sensor:
+      name: 화장실 문 센서
+      description: ''
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: false    
+    toilet_all_light:
+      name: 화장실 전체등
+      description: ''
+      selector:
+        entity:
+          domain: switch
+          multiple: false
+    off_time_sec:
+      name: 화장실 끄기 체크 시간
+      description: '사람이 나간뒤 체크시간'
+      default: 5
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          unit_of_measurement: 초
+          step: 1.0
+          mode: slider
+  source_url: https://github.com/so2chi/hablueprint/blob/main/toilet.yml
+trigger:
+  - platform: state
+    entity_id: !input toilet_sensor
+    to: 'on'
+    id: moveOn
+  - platform: state
+    entity_id: !input toilet_sensor
+    to: 'off'
+    for:
+      seconds: !input off_time_sec
+    id: moveOff
+action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: moveOn      
+      sequence:
+        - condition: state
+          entity_id: !input toilet_door_sensor
+          state: 'on'
+        - service: switch.turn_on
+          target:
+            entity_id: !input toilet_all_light
+    - conditions:
+      - condition: trigger
+        id: moveOff      
+      sequence:
+        - condition: state
+          entity_id: !input toilet_door_sensor
+          state: 'on'
+        - service: switch.turn_off
+          target:
+            entity_id: !input toilet_all_light
+mode: single

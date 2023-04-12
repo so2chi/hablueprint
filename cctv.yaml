@@ -1,0 +1,96 @@
+해당 yaml마다 아래를 보고 설정하세요.
+카메라 이름은 본인 지역카메라에 맞춰서 작명하심 됩니다.
+
+##configuration.yaml 아래 secret은 당연히 자기것으로..
+homeassistant:
+  allowlist_external_dirs:
+    - /config/www
+
+telegram_bot:
+  - platform: polling
+    api_key: !secret telegram_apikey
+    allowed_chat_ids:
+      - !secret telegram_id
+
+notify:
+  - name: telegram
+    platform: telegram
+    chat_id: !secret telegram_id
+
+downloader:
+  download_dir: /config/www
+
+automation: !include automations.yaml
+camera: !include camera.yaml
+input_select: !include input_select.yaml
+
+ffmpeg:
+
+
+##camera.yaml 전주는 70여개정도 있는데 딱 5군데로 잘라서 써봅니다
+- platform: ffmpeg  #번영로(종합경기장방향)
+  input: http://115.92.162.198:1935/live/CCTV_01.stream/playlist.m3u8
+  name: rd001
+- platform: ffmpeg  #동산광장(동산동고가도로뷰)
+  input: http://115.92.162.198:1935/live/CCTV_02.stream/playlist.m3u8
+  name: rd002
+- platform: ffmpeg  #송천역(아중리방향)
+  input: http://115.92.162.198:1935/live/CCTV_03.stream/playlist.m3u8
+  name: rd003
+- platform: ffmpeg  #차량등록사업소(아중리방향)
+  input: http://115.92.162.198:1935/live/CCTV_04.stream/playlist.m3u8
+  name: rd004
+- platform: ffmpeg  #호성네거리(아중리방향)
+  input: http://115.92.162.198:1935/live/CCTV_05.stream/playlist.m3u8
+  name: rd005
+
+
+##input_select.yaml
+traffic_camera:
+  name: '교통 카메라'
+  icon: mdi:traffic-light
+  options:
+    - 번영로_rd001
+    - 동산광장_rd002
+    - 송천역_rd003
+    - 차량등록사업소_rd004
+    - 호성네거리_rd005
+
+
+##ui-lovelace.yaml
+  - title: 카메라
+    icon: mdi:cctv
+    path: cctv
+    cards:
+      - type: horizontal-stack
+        cards:
+           entities:
+             - entity: input_select.traffic_camera
+
+
+##automation.yaml 
+#마지막으로 input_select에서 선택한 카메라의 영상을 전송하는 자동화입니다.
+#간혹 발송되지않고 러로그가 뜨는데 정확한 이유는 몰라요. 액션에 duration과 delay값은 잘 조정해보세요
+#아래 filename의 경로에 rdmap이라는 폴더를 만들어 두세요. 
+#거기에 영상이 저장되고 그걸 선택해서 발송하는 방식입니다.
+- alias: notify_telegram_traffic
+  initial_state: true
+  trigger:
+    platform: state
+    entity_id: input_select.traffic_camera
+  action:
+    - service: camera.record
+      target:
+        entity_id: camera.{{ states.input_select.traffic_camera.state.split('_')[1] }}
+      data:
+        duration: 5
+        filename: /config/www/rdmap/record_{{ states.input_select.traffic_camera.state.split('_')[1] }}.mp4
+    - delay: "00:00:10"
+    - service: notify.telegram
+      data:
+        message: Send an video
+        data:
+          video: 
+            - file: /config/www/rdmap/record_{{ states.input_select.traffic_camera.state.split('_')[1] }}.mp4
+              caption: "{{ now().strftime('%y/%m/%d %p %I:%M') | replace('AM', '오전') | replace('PM', '오후') }} {{ states.input_select.traffic_camera.state.split('_')[0] }} 교통상황"
+

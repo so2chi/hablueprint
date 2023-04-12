@@ -1,0 +1,44 @@
+blueprint:
+  name: 장치 충전완료 시 스위치 끄기
+  description: 설정 충전량 오버 시 스위치 끄기
+  domain: automation
+  input:
+    switch:
+      name: 스마트 플러그
+      description: Smart plug/relay to turn off
+      selector:
+        entity:
+          domain: switch
+          multiple: false
+    phone_battery:
+      name: 배터리 센서
+      description: Battery level sensor
+      selector:
+        entity:
+          domain: sensor
+          device_class: battery
+          multiple: false
+    charged_percent:
+      name: 충전량
+      description: Charge device to this percent
+      selector:
+        number:
+          min: 0.0
+          max: 100.0
+          unit_of_measurement: '%'
+          mode: box
+          step: 1.0
+      default: 100
+  source_url: https://github.com/so2chi/hablueprint/blob/main/charging_after_turn_off.yaml
+variables:
+  phone_battery: !input phone_battery
+  charged_percent: !input charged_percent
+trigger:
+- platform: state
+  entity_id: !input phone_battery
+condition:
+  condition: template
+  value_template: '{{ (states(phone_battery)|int) >= (charged_percent|int) }}'
+action:
+- service: switch.turn_off
+  entity_id: !input switch

@@ -1,0 +1,73 @@
+blueprint:
+  name: 배터리 부족 감지 & 알람
+  description: 교차를 위해 '배터리' 장치 등급으로 모든 센서를 정기적으로 테스트합니다.
+    특정 배터리 수준 임계값을 확인하고 그렇다면 작업을 실행합니다.    
+  domain: automation
+  input:
+    threshold:
+      name: 배터리 경고 레벨 설정
+      description: 임계값 미만의 배터리 센서는 배터리가 부족한 것으로 가정합니다(예:값이 'on'인 이진 배터리 센서).
+      default: 20
+      selector:
+        number:
+          min: 5.0
+          max: 100.0
+          unit_of_measurement: '%'
+          mode: slider
+          step: 5.0
+    time:
+      name: 테스트할 시간
+      description: 구성된 시간에 배터리 체크
+      default: '10:00:00'
+      selector:
+        time: {}
+    day:
+      name: 테스트할 요일
+      description: 'Test is run at configured time either everyday (0) or on a given
+        weekday (1: Monday ... 7: Sunday)'
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 7.0
+          mode: slider
+          step: 1.0
+    exclude:
+      name: 제외 센서
+      description: Battery sensors (e.g. smartphone) to exclude from detection. Only
+        entities are supported, devices must be expanded!
+      default:
+        entity_id: []
+      selector:
+        target:
+          entity:
+            device_class: battery
+    actions:
+      name: Actions
+      description: 실행할 알림 또는 이와 유사한 것. {{sensors}}는 다음으로 대체됩니다.
+        배터리가 부족한 센서의 이름.        
+      selector:
+        action: {}
+  source_url: https://github.com/so2chi/hablueprint/blob/main/low-battery.yaml
+variables:
+  day: !input day
+  threshold: !input threshold
+  exclude: !input exclude
+  sensors: "{% set result = namespace(sensors=[]) %} {% for state in states.sensor
+    | selectattr('attributes.device_class', '==', 'battery') %}\n  {% if 0 <= state.state
+    | int(-1) < threshold | int and not state.entity_id in exclude.entity_id %}\n
+    \   {% set result.sensors = result.sensors + [state.name ~ ' (' ~ state.state
+    ~ ' %)'] %}\n  {% endif %}\n{% endfor %} {% for state in states.binary_sensor
+    | selectattr('attributes.device_class', '==', 'battery') | selectattr('state',
+    '==', 'on') %}\n  {% if not state.entity_id in exclude.entity_id %}\n    {% set
+    result.sensors = result.sensors + [state.name] %}\n  {% endif %}\n{% endfor %}
+    {{result.sensors|join(', ')}}"
+trigger:
+- platform: time
+  at: !input time
+condition:
+- '{{ sensors != '''' and (day | int == 0 or day | int == now().isoweekday()) }}'
+action:
+- choose: []
+  default: !input actions
+mode: single
