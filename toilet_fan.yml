@@ -1,0 +1,180 @@
+blueprint:
+  name: 화장실 + 환풍기 자동
+  description: v1
+  domain: automation
+  input:
+    toilet_sensor:
+      name: 화장실 움직임센서
+      description: ''
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: false
+    toilet_door_sensor:
+      name: 화장실 문 센서
+      description: ''
+      selector:
+        entity:
+          domain: binary_sensor
+          multiple: false
+    toilet_fan:
+      name: 화장실 환풍기
+      description: ''
+      selector:
+        entity:
+          domain: switch
+          multiple: false
+    toilet_light:
+      name: 화장실 등
+      description: ''
+      selector:
+        entity:
+          domain: switch
+          multiple: false
+    toilet_all_light:
+      name: 화장실 전체등
+      description: ''
+      selector:
+        entity:
+          domain: switch
+          multiple: false
+    humidity_in:
+      name: 화장실 습도 센서
+      description: 화장실 안쪽 센서
+      selector:
+        entity:
+          domain: sensor
+          device_class: humidity
+          multiple: false    
+    trigger_over_humidity:
+      name: 환풍기 자동 켜기 끄기 기준 습도
+      description: "화장실 습도가 설정습도 이상 일때 자동으로 환풍기가 켜집니다.\n 화장실 습도가
+        설정습도 이하 일때 자동으로 환풍기가 꺼집니다.\n 환풍기 최대 가동 시간은 1이상 설정시 자동켜기는
+        비활성화 됩니다."
+      default: 70
+      selector:
+        number:
+          min: 50.0
+          max: 90.0
+          unit_of_measurement: '%'
+          step: 1.0
+          mode: slider
+    fan_off_time_max:
+      name: 환풍기 최대 가동 시간
+      description: '등을 끈 후 환풍기 가동 최대 시간을 설정 합니다.
+        0으로 설정시 비활성화.
+        1이상 설정시 자동켜기 비활성화'
+      default: 0
+      selector:
+        number:
+          min: 0.0
+          max: 120.0
+          unit_of_measurement: 분
+          step: 1.0
+          mode: slider
+    off_time_sec:
+      name: 화장실 끄기 체크 시간
+      description: '사람이 나간뒤 체크시간'
+      default: 5
+      selector:
+        number:
+          min: 0.0
+          max: 60.0
+          unit_of_measurement: 초
+          step: 1.0
+          mode: slider
+  source_url: ''
+trigger:
+- platform: state
+  entity_id: !input toilet_sensor
+  to: 'on'
+  id: moveOn
+- platform: state
+  entity_id: !input toilet_sensor
+  to: 'off'
+  for:
+    seconds: !input off_time_sec
+  id: moveOff
+ - platform: state
+   entity_id: !input humidity_in
+   for:
+     minutes: !input fan_off_time_max
+   id: offTimeMax
+- platform: state
+  entity_id: !input humidity_in
+  id: changHumidtyIn
+variables:
+  humidity_in: !input humidity_in
+  trigger_over_humidity: !input trigger_over_humidity
+  fan_off_time_max: !input fan_off_time_max
+action:
+- choose:
+  - conditions:
+    - condition: trigger
+      id: moveOn
+    - condition: state
+      entity_id: !input toilet_door_sensor
+      state: 'on'
+    sequence:
+    - service: switch.turn_on
+      target:
+        entity_id: !input toilet_fan
+    - service: switch.turn_on
+      target:
+        entity_id: !input toilet_light
+    - delay: "00:00:01"
+    - service: switch.turn_on
+      target:
+        entity_id: !input toilet_fan
+    - service: switch.turn_on
+      target:
+        entity_id: !input toilet_light
+  - conditions:
+    - condition: trigger
+      id: moveOff
+    - condition: state
+      entity_id: !input toilet_door_sensor
+      state: 'on'
+    sequence:
+    - service: switch.turn_off
+      target:
+        entity_id: !input toilet_all_light
+    - delay: "00:00:01"
+    - service: switch.turn_off
+      target:
+        entity_id: !input toilet_all_light
+  - conditions:
+    - condition: trigger
+      id: changHumidtyIn
+    sequence:
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ float(states[humidity_in].state) >= trigger_over_humidity }}'
+        sequence:
+        - service: switch.turn_on
+          target:
+            entity_id: !input toilet_fan
+      - conditions:
+        - condition: template
+          value_template: '{{ float(states[humidity_in].state) < trigger_over_humidity }}'
+        - condition: state
+          entity_id: !input toilet_door_sensor
+          state: 'on'
+        sequence:
+        - service: switch.turn_off
+          target:
+            entity_id: !input toilet_fan
+      default: []
+  - conditions:
+    - condition: trigger
+      id: offTimeMax
+    - condition: state
+      entity_id: !input toilet_door_sensor
+      state: 'on'
+    sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: !input toilet_fan
+  default: []
+mode: single
