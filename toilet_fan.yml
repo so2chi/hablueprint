@@ -49,8 +49,7 @@ blueprint:
     trigger_over_humidity:
       name: 환풍기 자동 켜기 끄기 기준 습도
       description: "화장실 습도가 설정습도 이상 일때 자동으로 환풍기가 켜집니다.\n 화장실 습도가
-        설정습도 이하 일때 자동으로 환풍기가 꺼집니다.\n 환풍기 최대 가동 시간은 1이상 설정시 자동켜기는
-        비활성화 됩니다."
+        설정습도 이하 일때 자동으로 환풍기가 꺼집니다."
       default: 70
       selector:
         number:
@@ -115,7 +114,7 @@ action:
       - condition: state
         entity_id: !input toilet_door_sensor
         state: 'on'
-      sequence:
+      - sequence:
         - service: switch.turn_on
           target:
             entity_id: !input toilet_fan
@@ -135,7 +134,7 @@ action:
       - condition: state
         entity_id: !input toilet_door_sensor
         state: 'on'
-      sequence:
+      - sequence:
         - service: switch.turn_off
           target:
             entity_id: !input toilet_all_light
@@ -146,12 +145,12 @@ action:
     - conditions:
       - condition: trigger
         id: changHumidtyIn
-      sequence:
+      - sequence:
         - choose:
           - conditions:
             - condition: template
               value_template: '{{ float(states[humidity_in].state) >= trigger_over_humidity }}'
-            sequence:
+            - sequence:
               - service: switch.turn_on
                 target:
                   entity_id: !input toilet_fan
@@ -161,10 +160,10 @@ action:
             - condition: state
               entity_id: !input toilet_door_sensor
               state: 'on'
-          sequence:
-            - service: switch.turn_off
-              target:
-                entity_id: !input toilet_fan
+            - sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: !input toilet_fan
           default: []
     - conditions:
       - condition: trigger
@@ -172,7 +171,7 @@ action:
       - condition: state
         entity_id: !input toilet_door_sensor
         state: 'on'
-      sequence:
+      - sequence:
         - service: switch.turn_off
           target:
           entity_id: !input toilet_fan
