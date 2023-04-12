@@ -102,7 +102,6 @@ trigger:
   - platform: state
     entity_id: !input humidity_in
     id: changHumidtyIn
-variables: []
 action:
   - choose:
     - conditions:
@@ -167,5 +166,5 @@ action:
           state: 'on'
         - service: switch.turn_off
           target:
-          entity_id: !input toilet_fan
+            entity_id: !input toilet_fan
 mode: single
