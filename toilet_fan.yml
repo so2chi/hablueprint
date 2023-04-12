@@ -147,20 +147,20 @@ action:
         id: changHumidtyIn
       - sequence:
         - if:
-          - condition: numeric_state
-            entity_id: !input humidity_in
-            above: trigger_over_humidity
-        then:
-          - service: switch.turn_on
-            target:
-              entity_id: !input toilet_fan
-        else:
-          - condition: state
-            entity_id: !input toilet_door_sensor
-            state: 'on'
-          - service: switch.turn_off
-            target:
-              entity_id: !input toilet_fan
+            - condition: numeric_state
+              entity_id: !input humidity_in
+              above: trigger_over_humidity
+          then:
+            - service: switch.turn_on
+              target:
+                entity_id: !input toilet_fan
+          else:
+            - condition: state
+              entity_id: !input toilet_door_sensor
+              state: 'on'
+            - service: switch.turn_off
+              target:
+                entity_id: !input toilet_fan
     - conditions:
       - condition: trigger
         id: offTimeMax
