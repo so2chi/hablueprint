@@ -110,11 +110,11 @@ action:
   - choose:
     - conditions:
       - condition: trigger
-        id: moveOn
-      - condition: state
-        entity_id: !input toilet_door_sensor
-        state: 'on'
+        id: moveOn      
       sequence:
+        - condition: state
+          entity_id: !input toilet_door_sensor
+          state: 'on'
         - service: switch.turn_on
           target:
             entity_id: !input toilet_fan
@@ -130,11 +130,11 @@ action:
             entity_id: !input toilet_light
     - conditions:
       - condition: trigger
-        id: moveOff
-      - condition: state
-        entity_id: !input toilet_door_sensor
-        state: 'on'
+        id: moveOff      
       sequence:
+        - condition: state
+          entity_id: !input toilet_door_sensor
+          state: 'on'
         - service: switch.turn_off
           target:
             entity_id: !input toilet_all_light
@@ -163,11 +163,11 @@ action:
                 entity_id: !input toilet_fan
     - conditions:
       - condition: trigger
-        id: offTimeMax
-      - condition: state
-        entity_id: !input toilet_door_sensor
-        state: 'on'
+        id: offTimeMax      
       sequence:
+        - condition: state
+          entity_id: !input toilet_door_sensor
+          state: 'on'
         - service: switch.turn_off
           target:
           entity_id: !input toilet_fan
