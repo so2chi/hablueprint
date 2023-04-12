@@ -1,5 +1,5 @@
 blueprint:
-  name: 화장실 + 환풍기 자동
+  name: 화장실_환풍기 자동
   description: v1
   domain: automation
   input:
