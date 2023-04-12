@@ -166,7 +166,7 @@ action:
               - service: switch.turn_off
                 target:
                   entity_id: !input toilet_fan
-          default: []
+          - default: []
     - conditions:
       - condition: trigger
         id: offTimeMax
@@ -177,5 +177,5 @@ action:
         - service: switch.turn_off
           target:
           entity_id: !input toilet_fan
-    default: []
+    - default: []
 mode: single
