@@ -102,10 +102,7 @@ trigger:
   - platform: state
     entity_id: !input humidity_in
     id: changHumidtyIn
-variables:
-  humidity_in: !input humidity_in
-  trigger_over_humidity: !input trigger_over_humidity
-  fan_off_time_max: !input fan_off_time_max
+variables: []
 action:
   - choose:
     - conditions:
@@ -149,7 +146,7 @@ action:
         - if:
             - condition: numeric_state
               entity_id: !input humidity_in
-              above: trigger_over_humidity
+              above: !input trigger_over_humidity
           then:
             - service: switch.turn_on
               target:
