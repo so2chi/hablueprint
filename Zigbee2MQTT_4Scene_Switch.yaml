@@ -1,0 +1,123 @@
+blueprint:
+  name: Zigbee2MQTT_4버튼 씬 스위치
+  description: ""
+  domain: automation
+  input:
+    topic_var:
+      name: Topic
+      description: '스위치 액션 MQTT zigbee2mqtt/기기/action'
+      default: zigbee2mqtt/+/action
+      selector:
+        text:
+          multiline: false
+    button_one_short_press:
+      name: 클릭 1번
+      description: 좌상
+      default: []
+      selector:
+        action: {}
+    button_one_hold:
+      name: 꾹 1번
+      description: 좌상
+      default: []
+      selector:
+        action: {}
+    button_one_double_press:
+      name: 더블클릭 1번
+      description: 좌상
+      default: []
+      selector:
+        action: {}
+    button_two_short_press:
+      name: 클릭 2번
+      description: 우상
+      default: []
+      selector:
+        action: {}
+    button_two_hold:
+      name: 꾹 2번
+      description: 우상
+      default: []
+      selector:
+        action: {}
+    button_two_double_press:
+      name: 더블클릭 2번
+      description: 우상
+      default: []
+      selector:
+        action: {}    
+    button_three_short_press:
+      name: 클릭 3번
+      description: 좌하
+      default: []
+      selector:
+        action: {}
+    button_three_hold:
+      name: 꾹 3번
+      description: 좌하
+      default: []
+      selector:
+        action: {}
+    button_three_double_press:
+      name: 더블클릭 3번
+      description: 좌하
+      default: []
+      selector:
+        action: {}
+    button_four_short_press:
+      name: 클릭 4번
+      description: 우하
+      default: []
+      selector:
+        action: {}
+    button_four_hold:
+      name: 꾹 4번
+      description: 우하
+      default: []
+      selector:
+        action: {}
+    button_four_double_press:
+      name: 더블클릭 4번
+      description: 우하
+      default: []
+      selector:
+        action: {}
+  source_url: https://github.com/so2chi/hablueprint/blob/main/Zigbee2MQTT_4Scene_Switch.yaml
+mode: single
+max_exceeded: silent
+trigger:
+- platform: mqtt
+  topic: !input topic_var
+condition:
+- condition: template
+  value_template: '{{ trigger.payload_json is defined and trigger.payload_json in (''1_single'', ''2_single'', ''3_single'', ''4_single'',
+    ''1_double'', ''2_double'', ''3_double'', ''4_double'', ''1_hold'', ''2_hold'', ''3_hold'', ''4_hold'') }}'
+action:
+- variables:
+    command: '{{ trigger.payload }}'
+- alias: "케이스"
+  choose:
+  - conditions: '{{ command == ''1_single'' }}'
+    sequence: !input button_one_short_press
+  - conditions: '{{ command == ''2_single'' }}'
+    sequence: !input button_two_short_press
+  - conditions: '{{ command == ''3_single'' }}'
+    sequence: !input button_three_short_press
+  - conditions: '{{ command == ''4_single'' }}'
+    sequence: !input button_four_short_press
+  - conditions: '{{ command == ''1_double'' }}'
+    sequence: !input button_one_double_press
+  - conditions: '{{ command == ''2_double'' }}'
+    sequence: !input button_two_double_press
+  - conditions: '{{ command == ''3_double'' }}'
+    sequence: !input button_three_double_press
+  - conditions: '{{ command == ''4_double'' }}'
+    sequence: !input button_four_double_press
+  - conditions: '{{ command == ''1_hold'' }}'
+    sequence: !input button_one_hold
+  - conditions: '{{ command == ''2_hold'' }}'
+    sequence: !input button_two_hold
+  - conditions: '{{ command == ''3_hold'' }}'
+    sequence: !input button_three_hold
+  - conditions: '{{ command == ''4_hold'' }}'
+    sequence: !input button_four_hold

@@ -1,0 +1,117 @@
+blueprint:
+  name: 공기청정기 수동 모드
+  description: ""
+  domain: automation
+  source_url: https://github.com/so2chi/hablueprint/blob/main/airpurifier.yml
+  input:
+    airpurifier:
+      name: 공기청정기
+      selector:
+      entity:
+        domain: fan
+        multiple: false
+    durtime:
+      name: 센서유지시간
+      description: '초'
+      default: 10
+      selector:
+        number:
+          min: 0.0
+          max: 120.0
+          unit_of_measurement: 초
+          step: 1.0
+          mode: slider
+    auto_trigger_above:
+      name: 자동모드 변경범위 ~부터
+      description: "0이면 작동안함"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: 'µg/m³'
+          step: 1.0
+          mode: slider
+    auto_trigger_below:
+      name: 자동모드 변경범위 ~까지
+      description: "0이면 작동안함"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: 'µg/m³'
+          step: 1.0
+          mode: slider
+    sleep_trigger_above:
+      name: 수면모드 변경범위 ~부터
+      description: "0이면 작동안함"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: 'µg/m³'
+          step: 1.0
+          mode: slider
+    sleep_trigger_below:
+      name: 수면모드 변경범위 ~까지
+      description: "0이면 작동안함"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: 'µg/m³'
+          step: 1.0
+          mode: slider
+    fav_trigger_above:
+      name: 선호모드 변경범위 ~부터
+      description: "0이면 작동안함"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: 'µg/m³'
+          step: 1.0
+          mode: slider
+    fav_trigger_below:
+      name: 선호모드 변경범위 ~까지
+      description: "0이면 작동안함"
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 50
+          unit_of_measurement: 'µg/m³'
+          step: 1.0
+          mode: slider
+  trigger:
+    - platform: numeric_state
+      entity_id: !input airpurifier
+      attribute: environment.pm2_5_density
+      above: !input auto_trigger_above
+      below: !input auto_trigger_below
+      for:
+        hours: 0
+        minutes: 0
+        seconds: !durtime
+    - platform: numeric_state
+      entity_id: !input airpurifier
+      attribute: environment.pm2_5_density
+      above: !input sleep_trigger_above
+      below: !input sleep_trigger_below
+      for:
+        hours: 0
+        minutes: 0
+        seconds: !durtime
+    - platform: numeric_state
+      entity_id: !input airpurifier
+      attribute: environment.pm2_5_density
+      above: !input fav_trigger_above
+      below: !input fav_trigger_below
+      for:
+        hours: 0
+        minutes: 0
+        seconds: !durtime
