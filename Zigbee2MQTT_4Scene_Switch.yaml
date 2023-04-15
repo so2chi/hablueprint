@@ -90,7 +90,7 @@ trigger:
   topic: !input topic_var
 condition:
 - condition: template
-  value_template: '{{ trigger.payload_json is defined and trigger.payload_json in (''1_single'', ''2_single'', ''3_single'', ''4_single'',
+  value_template: '{{ trigger.payload is defined and trigger.payload in (''1_single'', ''2_single'', ''3_single'', ''4_single'',
     ''1_double'', ''2_double'', ''3_double'', ''4_double'', ''1_hold'', ''2_hold'', ''3_hold'', ''4_hold'') }}'
 action:
 - variables:
